@@ -22,14 +22,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
-	"git.fe-cred.com/idfor/idfor/core/types"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
+	"git.fe-cred.com/idfor/idfor/core/types"
 )
 
 //RpcClient for ontology rpc api
@@ -263,5 +265,6 @@ func (this *RestClient) dealRestResponse(body io.Reader) ([]byte, error) {
 	if restRsp.Error != 0 {
 		return nil, fmt.Errorf("sendRestRequest error code:%d desc:%s result:%s", restRsp.Error, restRsp.Desc, restRsp.Result)
 	}
+	log.Printf("##### - %v\n", restRsp)
 	return restRsp.Result, nil
 }
