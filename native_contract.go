@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+
 	sdkcom "git.fe-cred.com/idfor/idfor-go-sdk/common"
 	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
 	"git.fe-cred.com/idfor/idfor/common"
@@ -22,6 +23,7 @@ var (
 	GLOABL_PARAMS_CONTRACT_ADDRESS, _ = utils.AddressFromHexString("0400000000000000000000000000000000000000")
 	AUTH_CONTRACT_ADDRESS, _          = utils.AddressFromHexString("0600000000000000000000000000000000000000")
 	GOVERNANCE_CONTRACT_ADDRESS, _    = utils.AddressFromHexString("0700000000000000000000000000000000000000")
+	IDFOR_FCUIM_CONTRACT_ADDRESS, _   = utils.AddressFromHexString("0800000000000000000000000000000000000000")
 )
 
 var (
