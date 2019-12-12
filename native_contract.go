@@ -99,6 +99,27 @@ func (this *NativeContract) InvokeNativeContract(
 	return this.ontSdk.SendTransaction(tx)
 }
 
+// 除了返回交易哈希，同时返回交易结果
+func (this *NativeContract) InvokeNativeContractRaw(
+	gasPrice,
+	gasLimit uint64,
+	singer *Account,
+	version byte,
+	contractAddress common.Address,
+	method string,
+	params []interface{},
+) (common.Uint256, interface{}, error) {
+	tx, err := this.NewNativeInvokeTransaction(gasPrice, gasLimit, version, contractAddress, method, params)
+	if err != nil {
+		return common.UINT256_EMPTY, nil, err
+	}
+	err = this.ontSdk.SignToTransaction(tx, singer)
+	if err != nil {
+		return common.UINT256_EMPTY, nil, err
+	}
+	return this.ontSdk.SendTransactionRaw(tx)
+}
+
 func (this *NativeContract) PreExecInvokeNativeContract(
 	contractAddress common.Address,
 	version byte,

@@ -3,12 +3,13 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"sync/atomic"
+	"time"
+
 	sdkcom "git.fe-cred.com/idfor/idfor-go-sdk/common"
 	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
 	"git.fe-cred.com/idfor/idfor/common"
 	"git.fe-cred.com/idfor/idfor/core/types"
-	"sync/atomic"
-	"time"
 )
 
 type ClientMgr struct {
@@ -286,6 +287,25 @@ func (this *ClientMgr) SendTransaction(mutTx *types.MutableTransaction) (common.
 		return common.UINT256_EMPTY, err
 	}
 	return utils.GetUint256(data)
+}
+
+func (this *ClientMgr) SendTransactionRaw(mutTx *types.MutableTransaction) (common.Uint256, interface{}, error) {
+	client := this.getClient()
+	if client == nil {
+		return common.UINT256_EMPTY, nil, fmt.Errorf("don't have available client of ontology")
+	}
+	tx, err := mutTx.IntoImmutable()
+	if err != nil {
+		return common.UINT256_EMPTY, nil, err
+	}
+	data, err := client.sendRawTransaction(this.getNextQid(), tx, false)
+	if err != nil {
+		return common.UINT256_EMPTY, nil, err
+	}
+
+	hash, err := utils.GetUint256(data)
+
+	return hash, data, err
 }
 
 func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdkcom.PreExecResult, error) {
