@@ -1397,5 +1397,11 @@ func (this *Fcuim) GetFcuimSchemes(acc *Account) (interface{}, error) {
 		return nil, nil
 	}
 
-	return evt.Notify, nil
+	if len(evt.Notify) < 1 {
+		return nil, nil
+	}
+
+	notify := evt.Notify[0]
+
+	return notify, nil
 }
