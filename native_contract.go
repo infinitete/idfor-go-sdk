@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	sdkcom "git.fe-cred.com/idfor/idfor-go-sdk/common"
 	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
@@ -1374,4 +1375,25 @@ func (this *Auth) VerifyToken(gasPrice, gasLimit uint64, signer *Account, contra
 		return common.UINT256_EMPTY, err
 	}
 	return this.ontSdk.SendTransaction(tx)
+}
+
+type Fcuim struct {
+	ontSdk *OntologySdk
+	native *NativeContract
+}
+
+func (this *Fcuim) GetFcuimSchemes(acc *Account) (interface{}, error) {
+	tx, err := this.ontSdk.Native.InvokeNativeContract(0, 0, acc, byte(0), IDFOR_FCUIM_CONTRACT_ADDRESS, "getFcuimSchemes", []interface{}{})
+	if err != nil {
+		return nil, nil
+	}
+
+	time.Sleep(time.Second * 6)
+	evt, err := this.ontSdk.GetSmartContractEvent(tx.ToHexString())
+
+	if err != nil {
+		return nil, nil
+	}
+
+	return evt.Notify, nil
 }

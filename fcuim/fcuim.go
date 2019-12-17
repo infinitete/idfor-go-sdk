@@ -14,14 +14,14 @@ func GetSchemes(sdk *SDK.OntologySdk, acc *SDK.Account) ([]*common.NotifyEventIn
 
 	tx, err := sdk.Native.InvokeNativeContract(0, 0, acc, byte(0), CONTRACT_ADDRESS, "getFcuimSchemes", []interface{}{})
 	if err != nil {
-		return []string{}, nil
+		return nil, nil
 	}
 
 	time.Sleep(time.Second * 6)
 	evt, err := sdk.GetSmartContractEvent(tx.ToHexString())
 
 	if err != nil {
-		return []string{}, nil
+		return nil, nil
 	}
 
 	return evt.Notify, nil
