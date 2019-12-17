@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	"github.com/ontio/ontology/core/payload"
 )

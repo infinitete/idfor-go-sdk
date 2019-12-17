@@ -1,23 +1,28 @@
 package fcuim
 
-const Idfor = "idfor"
-const Fcuim = "fcuim"
+import (
+	"time"
 
-const (
-	IdentifierID = byte(0x0) // 身份证号码
+	SDK "git.fe-cred.com/idfor/idfor-go-sdk"
+	"git.fe-cred.com/idfor/idfor-go-sdk/common"
+	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
 )
 
-// 验证一个全网唯一标识是否是有效的
-func IsFcuimValid(fcuim []byte) bool {
-	if len(fcuim) < 14 {
-		return false
+var CONTRACT_ADDRESS, _ = utils.AddressFromHexString("0800000000000000000000000000000000000000")
+
+func GetSchemes(sdk *SDK.OntologySdk, acc *SDK.Account) ([]*common.NotifyEventInfo, error) {
+
+	tx, err := sdk.Native.InvokeNativeContract(0, 0, acc, byte(0), CONTRACT_ADDRESS, "getFcuimSchemes", []interface{}{})
+	if err != nil {
+		return []string{}, nil
 	}
 
-	m := fcuim[13]
+	time.Sleep(time.Second * 6)
+	evt, err := sdk.GetSmartContractEvent(tx.ToHexString())
 
-	if m != IdentifierID {
-		return false
+	if err != nil {
+		return []string{}, nil
 	}
 
-	return true
+	return evt.Notify, nil
 }

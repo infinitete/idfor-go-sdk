@@ -22,13 +22,15 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
-	"git.fe-cred.com/idfor/idfor-go-sdk/bip44"
-	"git.fe-cred.com/idfor/idfor/smartcontract/event"
-	"github.com/ontio/go-bip32"
-	"github.com/tyler-smith/go-bip39"
 	"io"
 	"math/rand"
 	"time"
+
+	"git.fe-cred.com/idfor/idfor-go-sdk/bip44"
+	"git.fe-cred.com/idfor/idfor-go-sdk/fcuim"
+	"git.fe-cred.com/idfor/idfor/smartcontract/event"
+	"github.com/ontio/go-bip32"
+	"github.com/tyler-smith/go-bip39"
 
 	"git.fe-cred.com/idfor/idfor-go-sdk/client"
 	common3 "git.fe-cred.com/idfor/idfor-go-sdk/common"
@@ -542,4 +544,8 @@ func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (strin
 func (this *OntologySdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
 	address := types.AddressFromPubKey(pubKey)
 	return address.ToBase58()
+}
+
+func (this *OntologySdk) GetFcuimSchemes(acc Account) (interface{}, error) {
+	return fcuim.GetSchemes(this, acc)
 }
