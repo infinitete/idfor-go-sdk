@@ -1384,27 +1384,40 @@ type Fcuim struct {
 	native *NativeContract
 }
 
+// 通过智能合约调取
+// 然后订阅智能合约事件，获取已注册方法
 func (this *Fcuim) GetFcuimSchemes(acc *Account) ([]string, error) {
+
+	res := []string{}
 	tx, err := this.ontSdk.Native.InvokeNativeContract(0, 0, acc, byte(0), IDFOR_FCUIM_CONTRACT_ADDRESS, "getFcuimSchemes", []interface{}{})
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
-	time.Sleep(time.Second * 6)
+	// 等待一秒，确保链上已执行好智能合约
+	time.Sleep(time.Second * 1)
 	evt, err := this.ontSdk.GetSmartContractEvent(tx.ToHexString())
 
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	if len(evt.Notify) < 1 {
-		return nil, nil
+		return res, nil
 	}
 
 	notify := evt.Notify[0].States.([]interface{})
 	if len(notify) != 3 {
-		return nil, nil
+		return res, nil
 	}
 
-	return notify[2].([]string), nil
+	if len(notify[2].([]interface{})) == 0 || notify[2] == nil {
+		return res, nil
+	}
+
+	for _, s := range notify[2].([]interface{}) {
+		res = append(res, s.(string))
+	}
+
+	return res, nil
 }

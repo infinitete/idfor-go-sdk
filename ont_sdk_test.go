@@ -22,20 +22,21 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	common2 "git.fe-cred.com/idfor/idfor-go-sdk/common"
-	"github.com/ontio/ontology-crypto/signature"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/payload"
-	"github.com/ontio/ontology/core/utils"
-	"github.com/ontio/ontology/core/validation"
-	"github.com/ontio/ontology/smartcontract/event"
-	"github.com/ontio/ontology/smartcontract/service/native/ont"
-	"github.com/stretchr/testify/assert"
-	"github.com/tyler-smith/go-bip39"
 	"math/rand"
 	"strconv"
 	"testing"
 	"time"
+
+	common2 "git.fe-cred.com/idfor/idfor-go-sdk/common"
+	"git.fe-cred.com/idfor/idfor/common"
+	"git.fe-cred.com/idfor/idfor/core/payload"
+	"git.fe-cred.com/idfor/idfor/core/utils"
+	"git.fe-cred.com/idfor/idfor/core/validation"
+	"git.fe-cred.com/idfor/idfor/smartcontract/event"
+	"git.fe-cred.com/idfor/idfor/smartcontract/service/native/ont"
+	"github.com/ontio/ontology-crypto/signature"
+	"github.com/stretchr/testify/assert"
+	"github.com/tyler-smith/go-bip39"
 )
 
 var (
@@ -551,4 +552,15 @@ func TestWsTransfer(t *testing.T) {
 		fmt.Printf("ContractAddress:%s\n", notify.ContractAddress)
 		fmt.Printf("States:%+v\n", notify.States)
 	}
+}
+
+func TestFcuim(t *testing.T) {
+	sdk := NewOntologySdk()
+	sdk.NewRestClient().SetAddress("http://127.0.0.1:21334")
+	wallet, _ := sdk.OpenWallet("./wallet.dat")
+
+	acc, _ := wallet.GetDefaultAccount([]byte("123456"))
+	schemes, _ := sdk.Native.Fcuim.GetFcuimSchemes(acc)
+
+	t.Logf("%#v\n", schemes)
 }
