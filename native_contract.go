@@ -1390,7 +1390,7 @@ func (this *Fcuim) GetFcuimSchemes(acc *Account) ([]string, error) {
 		return nil, nil
 	}
 
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 6)
 	evt, err := this.ontSdk.GetSmartContractEvent(tx.ToHexString())
 
 	if err != nil {
