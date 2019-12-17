@@ -1384,13 +1384,13 @@ type Fcuim struct {
 	native *NativeContract
 }
 
-func (this *Fcuim) GetFcuimSchemes(acc *Account) (interface{}, error) {
+func (this *Fcuim) GetFcuimSchemes(acc *Account) ([]string, error) {
 	tx, err := this.ontSdk.Native.InvokeNativeContract(0, 0, acc, byte(0), IDFOR_FCUIM_CONTRACT_ADDRESS, "getFcuimSchemes", []interface{}{})
 	if err != nil {
 		return nil, nil
 	}
 
-	time.Sleep(time.Second * 6)
+	time.Sleep(time.Second * 3)
 	evt, err := this.ontSdk.GetSmartContractEvent(tx.ToHexString())
 
 	if err != nil {
@@ -1401,7 +1401,10 @@ func (this *Fcuim) GetFcuimSchemes(acc *Account) (interface{}, error) {
 		return nil, nil
 	}
 
-	notify := evt.Notify[0]
+	notify := evt.Notify[0].States.([]interface{})
+	if len(notify) != 3 {
+		return nil, nil
+	}
 
-	return notify, nil
+	return notify[2].([]string), nil
 }
