@@ -45,7 +45,6 @@ type NativeContract struct {
 	OntId        *OntId
 	GlobalParams *GlobalParam
 	Auth         *Auth
-	// Fcuim        *Fcuim
 }
 
 func newNativeContract(ontSdk *OntologySdk) *NativeContract {
@@ -55,7 +54,6 @@ func newNativeContract(ontSdk *OntologySdk) *NativeContract {
 	native.OntId = &OntId{native: native, ontSdk: ontSdk}
 	native.GlobalParams = &GlobalParam{native: native, ontSdk: ontSdk}
 	native.Auth = &Auth{native: native, ontSdk: ontSdk}
-	native.Fcuim = &Fcuim{native: native, ontSdk: ontSdk}
 	return native
 }
 
