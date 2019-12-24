@@ -553,14 +553,3 @@ func TestWsTransfer(t *testing.T) {
 		fmt.Printf("States:%+v\n", notify.States)
 	}
 }
-
-func TestFcuim(t *testing.T) {
-	sdk := NewOntologySdk()
-	sdk.NewRestClient().SetAddress("http://127.0.0.1:21334")
-	wallet, _ := sdk.OpenWallet("./wallet.dat")
-
-	acc, _ := wallet.GetDefaultAccount([]byte("123456"))
-	schemes, _ := sdk.Native.Fcuim.GetFcuimSchemes(acc)
-
-	t.Logf("%#v\n", schemes)
-}
