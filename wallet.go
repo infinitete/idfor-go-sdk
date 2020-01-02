@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"sync"
+
 	"git.fe-cred.com/idfor/idfor/common"
 	"git.fe-cred.com/idfor/idfor/core/types"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
-	"io/ioutil"
-	"os"
-	"sync"
 )
 
 var DEFAULT_WALLET_NAME = "MyWallet"

@@ -6,12 +6,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
 	"git.fe-cred.com/idfor/idfor/core/types"
 	base58 "github.com/itchyny/base58-go"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
 	"golang.org/x/crypto/ripemd160"
-	"math/big"
 )
 
 const (
@@ -211,6 +212,7 @@ func NewIdentityFromIdentityData(identityData *IdentityData) (*Identity, error) 
 		if ok {
 			return nil, fmt.Errorf("duplicate controller pubkey:%s", ctrData.Public)
 		}
+		ctrData.scrypt = identityData.scrypt
 		identity.ctrsIdMap[ctrData.ID] = ctrData
 		identity.ctrsPubMap[ctrData.Public] = ctrData
 		identity.controllers = append(identity.controllers, ctrData)

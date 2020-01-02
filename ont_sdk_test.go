@@ -356,7 +356,7 @@ func TestOntologySdk_CreateWallet(t *testing.T) {
 
 func TestNewOntologySdk(t *testing.T) {
 	testOntSdk = NewOntologySdk()
-	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.json")
 	event := &event.NotifyEventInfo{
 		ContractAddress: common.ADDRESS_EMPTY,
 		States:          []interface{}{"transfer", "Abc3UVbyL1kxd9sK6N9hzAT2u91ftbpoXT", "AFmseVrdL9f9oyCzZefL9tG6UbviEH9ugK", uint64(10000000)},
@@ -368,7 +368,7 @@ func TestNewOntologySdk(t *testing.T) {
 
 func TestOntologySdk_GetTxData(t *testing.T) {
 	testOntSdk = NewOntologySdk()
-	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.json")
 	acc, _ := testWallet.GetAccountByAddress("AVBzcUtgdgS94SpBmw4rDMhYA4KDq1YTzy", testPasswd)
 	tx, _ := testOntSdk.Native.Ont.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
 	testOntSdk.SignToTransaction(tx, acc)
@@ -386,14 +386,14 @@ func Init() {
 
 	var err error
 	var wallet *Wallet
-	if !common.FileExisted("./wallet.dat") {
-		wallet, err = testOntSdk.CreateWallet("./wallet.dat")
+	if !common.FileExisted("./wallet.json") {
+		wallet, err = testOntSdk.CreateWallet("./wallet.json")
 		if err != nil {
 			fmt.Println("[CreateWallet] error:", err)
 			return
 		}
 	} else {
-		wallet, err = testOntSdk.OpenWallet("./wallet.dat")
+		wallet, err = testOntSdk.OpenWallet("./wallet.json")
 		if err != nil {
 			fmt.Println("[CreateWallet] error:", err)
 			return
@@ -405,7 +405,7 @@ func Init() {
 		return
 	}
 	wallet.Save()
-	testWallet, err = testOntSdk.OpenWallet("./wallet.dat")
+	testWallet, err = testOntSdk.OpenWallet("./wallet.json")
 	if err != nil {
 		fmt.Printf("account.Open error:%s\n", err)
 		return
@@ -426,7 +426,7 @@ func Init() {
 
 func TestOnt_Transfer(t *testing.T) {
 	testOntSdk = NewOntologySdk()
-	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+	testWallet, _ = testOntSdk.OpenWallet("./wallet.json")
 	txHash, err := testOntSdk.Native.Ont.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
