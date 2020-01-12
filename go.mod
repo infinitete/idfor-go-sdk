@@ -5,6 +5,7 @@ go 1.13
 require (
 	git.fe-cred.com/idfor/idfor v0.0.0-20191210062844-4081562405e4
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/ethereum/go-ethereum v1.8.23
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/itchyny/base58-go v0.0.5

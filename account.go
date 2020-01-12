@@ -2,13 +2,16 @@ package ontology_go_sdk
 
 import (
 	"crypto/elliptic"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"git.fe-cred.com/idfor/idfor/common"
 	"git.fe-cred.com/idfor/idfor/core/types"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
 	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
+	"github.com/ontio/ontology-crypto/sm2"
 )
 
 type Signer interface {
@@ -97,6 +100,56 @@ func (this *Account) Sign(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("signature.Serialize error:%s", err)
 	}
 	return sigData, nil
+}
+
+func (this *Account) Encrypt(data []byte) ([]byte, error) {
+	switch this.PrivateKey.(type) {
+	case *ec.PrivateKey:
+		{
+			privateKey := this.PrivateKey.(*ec.PrivateKey)
+			switch privateKey.Algorithm {
+			case ec.SM2:
+				{
+					return sm2.Encrypt(&privateKey.PublicKey, data)
+				}
+			case ec.ECDSA:
+				{
+					eciesPrivateKey := ecies.ImportECDSA(privateKey.PrivateKey)
+					return ecies.Encrypt(rand.Reader, &eciesPrivateKey.PublicKey, data, nil, nil)
+				}
+			}
+			return nil, fmt.Errorf("encryption method not supported: ec.ECAlgorithm: %d", privateKey.Algorithm)
+		}
+	default:
+		{
+			return nil, fmt.Errorf("encryption method not supported")
+		}
+	}
+}
+
+func (this *Account) Decrypt(data []byte) ([]byte, error) {
+	switch this.PrivateKey.(type) {
+	case *ec.PrivateKey:
+		{
+			privateKey := this.PrivateKey.(*ec.PrivateKey)
+			switch privateKey.Algorithm {
+			case ec.SM2:
+				{
+					return sm2.Decrypt(privateKey.PrivateKey, data)
+				}
+			case ec.ECDSA:
+				{
+					eciesPrivateKey := ecies.ImportECDSA(privateKey.PrivateKey)
+					return eciesPrivateKey.Decrypt(data, nil, nil)
+				}
+			}
+			return nil, fmt.Errorf("encryption method not supported: ec.ECAlgorithm: %d", privateKey.Algorithm)
+		}
+	default:
+		{
+			return nil, fmt.Errorf("encryption method not supported")
+		}
+	}
 }
 
 func (this *Account) GetPrivateKey() keypair.PrivateKey {
