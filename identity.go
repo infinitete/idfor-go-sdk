@@ -9,9 +9,12 @@ import (
 	"math/big"
 
 	"git.fe-cred.com/idfor/idfor/core/types"
+	"github.com/ethereum/go-ethereum/crypto/ecies"
 	base58 "github.com/itchyny/base58-go"
+	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
+	"github.com/ontio/ontology-crypto/sm2"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -38,6 +41,56 @@ func (this *Controller) Sign(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("signature.Serialize error:%s", err)
 	}
 	return sigData, nil
+}
+
+func (this *Controller) Encrypt(data []byte) ([]byte, error) {
+	switch this.PrivateKey.(type) {
+	case *ec.PrivateKey:
+		{
+			privateKey := this.PrivateKey.(*ec.PrivateKey)
+			switch privateKey.Algorithm {
+			case ec.SM2:
+				{
+					return sm2.Encrypt(&privateKey.PublicKey, data)
+				}
+			case ec.ECDSA:
+				{
+					eciesPrivateKey := ecies.ImportECDSA(privateKey.PrivateKey)
+					return ecies.Encrypt(rand.Reader, &eciesPrivateKey.PublicKey, data, nil, nil)
+				}
+			}
+			return nil, fmt.Errorf("encryption method not supported: ec.ECAlgorithm: %d", privateKey.Algorithm)
+		}
+	default:
+		{
+			return nil, fmt.Errorf("encryption method not supported")
+		}
+	}
+}
+
+func (this *Controller) Decrypt(data []byte) ([]byte, error) {
+	switch this.PrivateKey.(type) {
+	case *ec.PrivateKey:
+		{
+			privateKey := this.PrivateKey.(*ec.PrivateKey)
+			switch privateKey.Algorithm {
+			case ec.SM2:
+				{
+					return sm2.Decrypt(privateKey.PrivateKey, data)
+				}
+			case ec.ECDSA:
+				{
+					eciesPrivateKey := ecies.ImportECDSA(privateKey.PrivateKey)
+					return eciesPrivateKey.Decrypt(data, nil, nil)
+				}
+			}
+			return nil, fmt.Errorf("encryption method not supported: ec.ECAlgorithm: %d", privateKey.Algorithm)
+		}
+	default:
+		{
+			return nil, fmt.Errorf("encryption method not supported")
+		}
+	}
 }
 
 func (this *Controller) GetPrivateKey() keypair.PrivateKey {
