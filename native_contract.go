@@ -23,7 +23,7 @@ var (
 	GLOABL_PARAMS_CONTRACT_ADDRESS, _ = utils.AddressFromHexString("0400000000000000000000000000000000000000")
 	AUTH_CONTRACT_ADDRESS, _          = utils.AddressFromHexString("0600000000000000000000000000000000000000")
 	GOVERNANCE_CONTRACT_ADDRESS, _    = utils.AddressFromHexString("0700000000000000000000000000000000000000")
-	// IDFOR_FCUIM_CONTRACT_ADDRESS, _   = utils.AddressFromHexString("0800000000000000000000000000000000000000")
+	TRUST_NOTIFY_CONTRACT_ADDRESS, _  = utils.AddressFromHexString("0800000000000000000000000000000000000000")
 )
 
 var (
@@ -33,6 +33,7 @@ var (
 	GLOBAL_PARAMS_CONTRACT_VERSION = byte(0)
 	AUTH_CONTRACT_VERSION          = byte(0)
 	GOVERNANCE_CONTRACT_VERSION    = byte(0)
+	TRUST_NOTIFY_CONTRACT_VERSION  = byte(0)
 )
 
 var OPCODE_IN_PAYLOAD = map[byte]bool{0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true,
@@ -45,6 +46,7 @@ type NativeContract struct {
 	OntId        *OntId
 	GlobalParams *GlobalParam
 	Auth         *Auth
+	TrustNotify  *TrustNotify
 }
 
 func newNativeContract(ontSdk *OntologySdk) *NativeContract {
@@ -54,6 +56,7 @@ func newNativeContract(ontSdk *OntologySdk) *NativeContract {
 	native.OntId = &OntId{native: native, ontSdk: ontSdk}
 	native.GlobalParams = &GlobalParam{native: native, ontSdk: ontSdk}
 	native.Auth = &Auth{native: native, ontSdk: ontSdk}
+	native.TrustNotify = &TrustNotify{native: native, ontSdk: ontSdk}
 	return native
 }
 
@@ -1374,4 +1377,33 @@ func (this *Auth) VerifyToken(gasPrice, gasLimit uint64, signer *Account, contra
 		return common.UINT256_EMPTY, err
 	}
 	return this.ontSdk.SendTransaction(tx)
+}
+
+type TrustNotify struct {
+	ontSdk *OntologySdk
+	native *NativeContract
+}
+
+func (this *TrustNotify) Send(ontId string, raw, keyIndex, signature []byte) (*types.MutableTransaction, error) {
+	type trustNotify struct {
+		From      string
+		Raw       []byte
+		KeyIndex  []byte
+		Signature []byte
+	}
+
+	return this.native.NewNativeInvokeTransaction(
+		0,
+		0,
+		TRUST_NOTIFY_CONTRACT_VERSION,
+		TRUST_NOTIFY_CONTRACT_ADDRESS,
+		"trustNotify",
+		[]interface{}{
+			&trustNotify{
+				From:      ontId,
+				Raw:       raw,
+				KeyIndex:  keyIndex,
+				Signature: signature,
+			},
+		})
 }

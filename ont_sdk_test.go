@@ -34,6 +34,7 @@ import (
 	"git.fe-cred.com/idfor/idfor/core/validation"
 	"git.fe-cred.com/idfor/idfor/smartcontract/event"
 	"git.fe-cred.com/idfor/idfor/smartcontract/service/native/ont"
+	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-crypto/signature"
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
@@ -552,4 +553,65 @@ func TestWsTransfer(t *testing.T) {
 		fmt.Printf("ContractAddress:%s\n", notify.ContractAddress)
 		fmt.Printf("States:%+v\n", notify.States)
 	}
+}
+
+func TestTrustNotify(t *testing.T) {
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://localhost:20334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	wallet, err := sdk.CreateWallet("test.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	acc, err := wallet.NewAccount(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, []byte("123456"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var identity *Identity
+
+	if wallet.GetIdentityCount() == 0 {
+		identity, err = wallet.NewIdentity(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, []byte("123456"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ctrl, _ := identity.GetControllerByIndex(1, []byte("123456"))
+		_, err = sdk.Native.OntId.RegIDWithPublicKey(0, 0, acc, identity.ID, ctrl)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	time.Sleep(time.Second * 6)
+
+	im, err := sdk.Native.TrustNotify.Send(identity.ID, []byte("HelloWorld"), []byte("1"), []byte("faker"))
+	if err != nil {
+		t.Fatalf("%#v\n", err)
+	}
+
+	err = sdk.Native.ontSdk.SignToTransaction(im, acc)
+	if err != nil {
+		t.Fatalf("%#v\n", err)
+	}
+
+	tx, err := sdk.SendTransaction(im)
+	if err != nil {
+		t.Fatalf("%#v\n", err)
+	}
+
+	t.Logf("%#v\n", tx.ToHexString())
+
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+
+	// tx, err := sdk.Native.ontSdk.SendTransaction(im)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+
+	// t.Logf("Transaction: %s", tx.ToHexString())
 }
