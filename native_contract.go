@@ -14,6 +14,7 @@ import (
 	"git.fe-cred.com/idfor/idfor/smartcontract/service/native/global_params"
 	"git.fe-cred.com/idfor/idfor/smartcontract/service/native/ont"
 	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/ontio/ontology-crypto/signature"
 )
 
 var (
@@ -1384,7 +1385,7 @@ type TrustNotify struct {
 	native *NativeContract
 }
 
-func (this *TrustNotify) Send(ontId string, raw, keyIndex, signature []byte) (*types.MutableTransaction, error) {
+func (this *TrustNotify) Send(ontId string, acc *Account, raw, keyIndex, signature []byte) (common.Uint256, error) {
 	type trustNotify struct {
 		From      string
 		Raw       []byte
@@ -1392,7 +1393,7 @@ func (this *TrustNotify) Send(ontId string, raw, keyIndex, signature []byte) (*t
 		Signature []byte
 	}
 
-	return this.native.NewNativeInvokeTransaction(
+	imt, err := this.native.NewNativeInvokeTransaction(
 		0,
 		0,
 		TRUST_NOTIFY_CONTRACT_VERSION,
@@ -1406,4 +1407,97 @@ func (this *TrustNotify) Send(ontId string, raw, keyIndex, signature []byte) (*t
 				Signature: signature,
 			},
 		})
+
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	err = this.native.ontSdk.SignToTransaction(imt, acc)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	return this.ontSdk.SendTransaction(imt)
+}
+
+func (this *TrustNotify) Verify(tx string, ontId string) error {
+
+	evt, err := this.ontSdk.GetSmartContractEvent(tx)
+	if err != nil {
+		return err
+	}
+
+	notify := evt.Notify
+	if len(notify) != 1 {
+		return fmt.Errorf("Transaction %s is not a trust notify transaction", tx)
+	}
+
+	evtInfo := notify[0]
+	payload := evtInfo.States.([]interface{})
+	if len(payload) != 5 || payload[0].(string) != "TrustNotify" {
+		fmt.Errorf("Tx %s is not a Trsust Notify transaction\n", tx)
+	}
+
+	from := payload[1].(string)
+	if from != ontId {
+		fmt.Errorf("Trust notify %s was not send by %s, but by %s\n", ontId, from)
+	}
+
+	rawStr := payload[2].(string)
+	keyIndexS := payload[3].(string)
+	testSignatureStr := payload[4].(string)
+
+	rawNet, err := hex.DecodeString(rawStr)
+	if err != nil {
+		return err
+	}
+
+	keyNet, err := hex.DecodeString(keyIndexS)
+	if err != nil {
+		return err
+	}
+
+	signNet, err := hex.DecodeString(testSignatureStr)
+	if err != nil {
+		return err
+	}
+
+	ddos, err := this.ontSdk.Native.OntId.GetPublicKeys(from)
+	if err != nil || len(ddos) == 0 {
+		return fmt.Errorf("%s not registered: %s\n", from, err)
+	}
+
+	pkStr := ""
+
+	// 找到公钥
+	for _, d := range ddos {
+		if d.PubKeyId == fmt.Sprintf("%s#keys-%s", ontId, keyNet) {
+			pkStr = d.Value
+		}
+	}
+
+	if pkStr == "" {
+		return fmt.Errorf("TestTrustNotify fail: %s has no publick key of index:  %s\n", ontId, keyNet)
+	}
+
+	pkBytes, err := hex.DecodeString(pkStr)
+	if err != nil {
+		return fmt.Errorf("Decode publick key error:  %s\n", err)
+	}
+
+	pubKey, err := keypair.DeserializePublicKey(pkBytes)
+	if err != nil {
+		return fmt.Errorf("Deserialize publick key error:  %s\n", err)
+	}
+
+	sig, err := signature.Deserialize(signNet)
+	if err != nil {
+		return fmt.Errorf("Deserialize signature error:  %s\n", err)
+	}
+
+	if !signature.Verify(pubKey, rawNet, sig) {
+		return fmt.Errorf("Verify fail: verify signature fail")
+	}
+
+	return nil
 }

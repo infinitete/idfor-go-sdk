@@ -558,10 +558,10 @@ func TestWsTransfer(t *testing.T) {
 func TestTrustNotify(t *testing.T) {
 	sdk := NewOntologySdk()
 	rest := sdk.NewRestClient()
-	rest.SetAddress("http://localhost:20334")
+	rest.SetAddress("http://192.168.124.20:20334")
 	sdk.ClientMgr.SetDefaultClient(rest)
 
-	wallet, err := sdk.CreateWallet("test.json")
+	wallet, err := sdk.CreateWallet("test1.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -587,31 +587,27 @@ func TestTrustNotify(t *testing.T) {
 
 	time.Sleep(time.Second * 6)
 
-	im, err := sdk.Native.TrustNotify.Send(identity.ID, []byte("HelloWorld"), []byte("1"), []byte("faker"))
+	id := identity.ID
+	raw := []byte("告诉你们，这是一段需要签名的内容。我会拿着我的私钥进行签名，你们使用我的公钥验证签名即可。")
+	keyIndex := []byte("1")
+	// testSignature := []byte("ThisIsAFakeSignauture")
+
+	ctrl, _ := identity.GetControllerByIndex(1, []byte("123456"))
+	testSignature, _ := ctrl.Sign(raw)
+
+	tx, err := sdk.Native.TrustNotify.Send(identity.ID, acc, raw, keyIndex, testSignature)
 	if err != nil {
-		t.Fatalf("%#v\n", err)
+		t.Fatalf("TestTrustNotify fail: %s\n", err)
 	}
 
-	err = sdk.Native.ontSdk.SignToTransaction(im, acc)
+	time.Sleep(time.Second * 6)
+
+	txHash := tx.ToHexString()
+
+	t.Logf("Transaction: %s\n", txHash)
+
+	err = sdk.Native.TrustNotify.Verify(txHash, id)
 	if err != nil {
-		t.Fatalf("%#v\n", err)
+		t.Fatalf("TestTrustNotify fail: %s\n", err)
 	}
-
-	tx, err := sdk.SendTransaction(im)
-	if err != nil {
-		t.Fatalf("%#v\n", err)
-	}
-
-	t.Logf("%#v\n", tx.ToHexString())
-
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// tx, err := sdk.Native.ontSdk.SendTransaction(im)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// t.Logf("Transaction: %s", tx.ToHexString())
 }
