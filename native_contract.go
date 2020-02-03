@@ -25,6 +25,7 @@ var (
 	AUTH_CONTRACT_ADDRESS, _          = utils.AddressFromHexString("0600000000000000000000000000000000000000")
 	GOVERNANCE_CONTRACT_ADDRESS, _    = utils.AddressFromHexString("0700000000000000000000000000000000000000")
 	TRUST_NOTIFY_CONTRACT_ADDRESS, _  = utils.AddressFromHexString("0800000000000000000000000000000000000000")
+	STORAGE_CONTRACT_ADDRESS, _       = utils.AddressFromHexString("0900000000000000000000000000000000000000")
 )
 
 var (
@@ -35,6 +36,7 @@ var (
 	AUTH_CONTRACT_VERSION          = byte(0)
 	GOVERNANCE_CONTRACT_VERSION    = byte(0)
 	TRUST_NOTIFY_CONTRACT_VERSION  = byte(0)
+	STORAGE_CONTRACT_VERSION       = byte(0)
 )
 
 var OPCODE_IN_PAYLOAD = map[byte]bool{0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true,
@@ -1435,12 +1437,12 @@ func (this *TrustNotify) Verify(tx string, ontId string) error {
 	evtInfo := notify[0]
 	payload := evtInfo.States.([]interface{})
 	if len(payload) != 5 || payload[0].(string) != "TrustNotify" {
-		fmt.Errorf("Tx %s is not a Trsust Notify transaction\n", tx)
+		return fmt.Errorf("Tx %s is not a Trsust Notify transaction\n", tx)
 	}
 
 	from := payload[1].(string)
 	if from != ontId {
-		fmt.Errorf("Trust notify %s was not send by %s, but by %s\n", ontId, from)
+		return fmt.Errorf("Trust notify %s was not send by %s, but by %s\n", tx, ontId, from)
 	}
 
 	rawStr := payload[2].(string)
