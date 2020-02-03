@@ -50,6 +50,7 @@ type NativeContract struct {
 	GlobalParams *GlobalParam
 	Auth         *Auth
 	TrustNotify  *TrustNotify
+	Storage      *Storage
 }
 
 func newNativeContract(ontSdk *OntologySdk) *NativeContract {
@@ -60,6 +61,7 @@ func newNativeContract(ontSdk *OntologySdk) *NativeContract {
 	native.GlobalParams = &GlobalParam{native: native, ontSdk: ontSdk}
 	native.Auth = &Auth{native: native, ontSdk: ontSdk}
 	native.TrustNotify = &TrustNotify{native: native, ontSdk: ontSdk}
+	native.Storage = &Storage{native: native, ontSdk: ontSdk}
 	return native
 }
 
