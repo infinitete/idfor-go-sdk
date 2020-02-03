@@ -611,3 +611,54 @@ func TestTrustNotify(t *testing.T) {
 		t.Fatalf("TestTrustNotify fail: %s\n", err)
 	}
 }
+
+func TestStorage(t *testing.T) {
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://127.0.0.1:20334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	wallet, err := sdk.CreateWallet("test1.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	acc, err := wallet.NewAccount(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, []byte("123456"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var key = []byte("This_Is_A_Key")
+	var val = []byte("This is a value")
+
+	_, err = sdk.Native.Storage.Put(acc, key, val)
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Second * 6)
+
+	res, err := sdk.Native.Storage.Get(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := res.Result.ToString()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != string(val) {
+		t.Fatalf("Want %s, got %s", val, s)
+	}
+
+	_, err = sdk.Native.Storage.Delete(acc, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(time.Second * 6)
+
+	res, err = sdk.Native.Storage.Get(key)
+	s, _ = res.Result.ToString()
+	if s != "" {
+		t.Fatalf("Delete Not Work: want empty, got %s", s)
+	}
+}
