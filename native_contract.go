@@ -1389,7 +1389,15 @@ type TrustNotify struct {
 	native *NativeContract
 }
 
+type TrustNotifyArgs struct {
+	From      string
+	Raw       string
+	KeyIndex  uint8
+	Signature string
+}
+
 func (this *TrustNotify) Send(ontId string, acc *Account, raw, keyIndex, signature []byte) (common.Uint256, error) {
+
 	type trustNotify struct {
 		From      string
 		Raw       []byte
@@ -1422,6 +1430,39 @@ func (this *TrustNotify) Send(ontId string, acc *Account, raw, keyIndex, signatu
 	}
 
 	return this.ontSdk.SendTransaction(imt)
+}
+
+func (this *TrustNotify) Get(tx string) (*TrustNotifyArgs, error) {
+
+	evt, err := this.ontSdk.GetSmartContractEvent(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	notify := evt.Notify
+	if len(notify) != 1 {
+		return nil, fmt.Errorf("Transaction %s is not a trust notify transaction", tx)
+	}
+
+	evtInfo := notify[0]
+	payload := evtInfo.States.([]interface{})
+	if len(payload) != 5 || payload[0].(string) != "TrustNotify" {
+		return nil, fmt.Errorf("Tx %s is not a Trsust Notify transaction\n", tx)
+	}
+
+	from := payload[1].(string)
+	rawStr := payload[2].(string)
+	keyIndexS := payload[3].(string)
+	signatureStr := payload[4].(string)
+
+	key, _ := hex.DecodeString(keyIndexS) // 对应ascii码的字符数字，如：1为0x31，keyIndex则为49(0x31) - 48
+
+	return &TrustNotifyArgs{
+		From:      from,
+		Raw:       rawStr,
+		KeyIndex:  key[0] - uint8(48),
+		Signature: signatureStr,
+	}, nil
 }
 
 func (this *TrustNotify) Verify(tx string, ontId string) error {

@@ -610,15 +610,19 @@ func TestTrustNotify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestTrustNotify fail: %s\n", err)
 	}
+
+	t.Log("GetArgs:")
+	args, err := sdk.Native.TrustNotify.Get(txHash)
+	t.Logf("%#v\n - %s\n", args, err)
 }
 
 func TestStorage(t *testing.T) {
 	sdk := NewOntologySdk()
 	rest := sdk.NewRestClient()
-	rest.SetAddress("http://127.0.0.1:20334")
+	rest.SetAddress("http://192.168.124.20:20334")
 	sdk.ClientMgr.SetDefaultClient(rest)
 
-	wallet, err := sdk.CreateWallet("test1.json")
+	wallet, err := sdk.CreateWallet("test.json")
 	if err != nil {
 		t.Fatal(err)
 	}
