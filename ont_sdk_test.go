@@ -23,6 +23,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -619,10 +620,10 @@ func TestTrustNotify(t *testing.T) {
 func TestStorage(t *testing.T) {
 	sdk := NewOntologySdk()
 	rest := sdk.NewRestClient()
-	rest.SetAddress("http://192.168.124.20:20334")
+	rest.SetAddress("http://127.0.0.1:20334")
 	sdk.ClientMgr.SetDefaultClient(rest)
 
-	wallet, err := sdk.CreateWallet("test.json")
+	wallet, err := sdk.OpenWallet("test.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -665,4 +666,72 @@ func TestStorage(t *testing.T) {
 	if s != "" {
 		t.Fatalf("Delete Not Work: want empty, got %s", s)
 	}
+}
+
+func TestVoucher(t *testing.T) {
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://127.0.0.1:20334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	wallet, err := sdk.OpenWallet("test.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	acc, err := wallet.NewAccount(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, []byte("123456"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var pass = []byte("123456")
+	identity, _ := wallet.NewIdentity(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, pass)
+
+	vc, _ := sdk.Native.Voucer.NewVoucher(identity, pass, "这是凭证标题", "这是凭证内容")
+	if err != nil {
+		t.Fatalf("Voucher.NewVoucher error: %s", err)
+	}
+
+	tx, err := sdk.Native.Voucer.Put(acc, vc)
+	if err != nil {
+		t.Fatalf("Voucher.NewVoucher error: %s", err)
+	}
+
+	time.Sleep(time.Second * 6)
+
+	evt, err := sdk.GetSmartContractEvent(tx.ToHexString())
+	if err != nil {
+		t.Fatalf("Tx not success: %s", err)
+	}
+	notify := evt.Notify[0].States.([]interface{})
+	t.Logf("Event: %s - %s - %s", notify...)
+
+	res, err := sdk.Native.Voucer.GetVoucher(vc.Key)
+	if err != nil {
+		t.Fatalf("Voucher.NewVoucher error: %s", err)
+	}
+	bs, err := res.Result.ToByteArray()
+	if err != nil {
+		t.Fatalf("Voucher.Bytes error: %s", err)
+	}
+
+	_vc, _ := sdk.Native.Voucer.NewVoucher(identity, pass, "", "")
+	err = _vc.deserialization(common.NewZeroCopySource(bs))
+	if err != nil {
+		t.Fatalf("Voucher.deserialization error: %s", err)
+	}
+
+	if _vc.Timestamp == 0 {
+		t.Fail()
+	}
+
+	_vc.Timestamp = 0
+
+	if !reflect.DeepEqual(_vc, vc) {
+		t.Error("NotEqual")
+		t.Fail()
+	}
+
+	t.Logf("%#v", vc)
+	t.Logf("%#v", _vc)
 }
