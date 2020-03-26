@@ -23,7 +23,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
-	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -685,20 +684,59 @@ func TestVoucher(t *testing.T) {
 	}
 
 	var pass = []byte("123456")
-	identity, _ := wallet.NewIdentity(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, pass)
-
-	vc, _ := sdk.Native.Voucer.NewVoucher(identity, pass, "这是凭证标题", "这是凭证内容")
-	if err != nil {
-		t.Fatalf("Voucher.NewVoucher error: %s", err)
+	var identity *Identity
+	if wallet.GetIdentityCount() < 1 {
+		_idt, err := wallet.NewIdentity(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, pass)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		ctrl, _ := _idt.GetControllerByIndex(1, pass)
+		_, err = sdk.Native.OntId.RegIDWithPublicKey(0, 0, acc, _idt.ID, ctrl)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		identity = _idt
+		time.Sleep(6 * time.Second)
+		wallet.Save()
+	} else {
+		identity, _ = wallet.GetDefaultIdentity()
 	}
 
-	tx, err := sdk.Native.Voucer.Put(acc, vc)
-	if err != nil {
-		t.Fatalf("Voucher.NewVoucher error: %s", err)
-	}
+	// vc, _ := sdk.Native.Voucer.NewVoucher(identity, pass, "这是凭证标题", "这是凭证内容")
+	// if err != nil {
+	// 	t.Fatalf("Voucher.NewVoucher error: %s", err)
+	// }
 
+	// tx, err := sdk.Native.Voucer.Put(acc, vc)
+	// if err != nil {
+	// 	t.Fatalf("Voucher.NewVoucher error: %s", err)
+	// }
+
+	// time.Sleep(time.Second * 6)
+
+	// evt, err := sdk.GetSmartContractEvent(tx.ToHexString())
+	// if err != nil {
+	// 	t.Fatalf("Tx not success: %s", err)
+	// }
+	// notify := evt.Notify[0].States.([]interface{})
+	// t.Logf("Event: %s - %s - %s", notify...)
+
+	// res, err := sdk.Native.Voucer.GetVoucher(identity.ID)
+	// if err != nil {
+	// 	t.Fatalf("Voucher.NewVoucher error: %s", err)
+	// }
+	// _, err = res.Result.ToByteArray()
+	// if err != nil {
+	// 	t.Fatalf("Voucher.Bytes error: %s", err)
+	// }
+
+	tx, err := sdk.Native.Voucer.PutEvent(acc, identity, pass, identity.ID, "这是一个事件标题", "这是一个事件内容")
+	if err != nil {
+		t.Fatalf("Voucher.PutEvent error: %s", err)
+	}
 	time.Sleep(time.Second * 6)
-
 	evt, err := sdk.GetSmartContractEvent(tx.ToHexString())
 	if err != nil {
 		t.Fatalf("Tx not success: %s", err)
@@ -706,32 +744,9 @@ func TestVoucher(t *testing.T) {
 	notify := evt.Notify[0].States.([]interface{})
 	t.Logf("Event: %s - %s - %s", notify...)
 
-	res, err := sdk.Native.Voucer.GetVoucher(vc.Key)
-	if err != nil {
-		t.Fatalf("Voucher.NewVoucher error: %s", err)
+	_res, err := sdk.Native.Voucer.GetVoucherEvents("sds")
+	t.Logf("LastErr: %s", err)
+	for _, evt := range _res {
+		t.Logf("%#v", evt)
 	}
-	bs, err := res.Result.ToByteArray()
-	if err != nil {
-		t.Fatalf("Voucher.Bytes error: %s", err)
-	}
-
-	_vc, _ := sdk.Native.Voucer.NewVoucher(identity, pass, "", "")
-	err = _vc.deserialization(common.NewZeroCopySource(bs))
-	if err != nil {
-		t.Fatalf("Voucher.deserialization error: %s", err)
-	}
-
-	if _vc.Timestamp == 0 {
-		t.Fail()
-	}
-
-	_vc.Timestamp = 0
-
-	if !reflect.DeepEqual(_vc, vc) {
-		t.Error("NotEqual")
-		t.Fail()
-	}
-
-	t.Logf("%#v", vc)
-	t.Logf("%#v", _vc)
 }

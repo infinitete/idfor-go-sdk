@@ -53,7 +53,7 @@ type NativeContract struct {
 	Auth         *Auth
 	TrustNotify  *TrustNotify
 	Storage      *Storage
-	Voucer       *Voucher
+	Voucer       *voucher
 }
 
 func newNativeContract(ontSdk *OntologySdk) *NativeContract {
@@ -65,7 +65,7 @@ func newNativeContract(ontSdk *OntologySdk) *NativeContract {
 	native.Auth = &Auth{native: native, ontSdk: ontSdk}
 	native.TrustNotify = &TrustNotify{native: native, ontSdk: ontSdk}
 	native.Storage = &Storage{native: native, ontSdk: ontSdk}
-	native.Voucer = &Voucher{native: native, ontSdk: ontSdk}
+	native.Voucer = &voucher{native: native, ontSdk: ontSdk}
 	return native
 }
 
