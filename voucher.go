@@ -22,7 +22,6 @@ import (
 	"encoding/hex"
 	"io"
 
-	sdkcom "git.fe-cred.com/idfor/idfor-go-sdk/common"
 	"git.fe-cred.com/idfor/idfor/common"
 )
 
@@ -174,7 +173,7 @@ func (s *voucher) Put(acc *Account, vc *Voucher) (common.Uint256, error) {
 	return s.ontSdk.SendTransaction(imt)
 }
 
-func (s *voucher) GetVoucher(key string) (*sdkcom.PreExecResult, error) {
+func (s *voucher) GetVoucher(key string) (*Voucher, error) {
 	param := t_get_voucher{
 		Key: key,
 	}
@@ -183,7 +182,17 @@ func (s *voucher) GetVoucher(key string) (*sdkcom.PreExecResult, error) {
 		return nil, err
 	}
 
-	return s.ontSdk.PreExecTransaction(imt)
+	res, err := s.ontSdk.PreExecTransaction(imt)
+	if err != nil {
+		return nil, err
+	}
+	bs, err := res.Result.ToByteArray()
+	if err != nil {
+		return nil, err
+	}
+	source := common.NewZeroCopySource(bs)
+	vc := &Voucher{}
+	return vc, vc.deserialization(source)
 }
 
 func (s *voucher) PutEvent(acc *Account, operator *Identity, pass []byte, voucher, title, content string) (common.Uint256, error) {
