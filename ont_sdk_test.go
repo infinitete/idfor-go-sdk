@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -748,5 +749,190 @@ func TestVoucher(t *testing.T) {
 	t.Logf("LastErr: %s", err)
 	for _, evt := range _res {
 		t.Logf("%#v", evt)
+	}
+}
+
+func TestAssignCtidPid(t *testing.T) {
+
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://192.168.0.20:21334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	wallet, err := sdk.OpenWallet("test.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	acc, err := wallet.GetDefaultAccount([]byte("123456"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var pass = []byte("123456")
+
+	var idt *Identity
+	if wallet.GetIdentityCount() < 1 {
+		_idt, err := wallet.NewIdentity(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, pass)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		ctrl, _ := _idt.GetControllerByIndex(1, pass)
+		tx, err := sdk.Native.OntId.RegIDWithPublicKey(0, 0, acc, _idt.ID, ctrl)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		t.Logf("RegisterTx: %s", tx.ToHexString())
+		idt = _idt
+		time.Sleep(6 * time.Second)
+		wallet.Save()
+	} else {
+		idt, _ = wallet.GetDefaultIdentity()
+	}
+
+	ch := make(chan struct{}, 3)
+	w := sync.WaitGroup{}
+
+	for i := 100; i < 500; i++ {
+		go func(x int) {
+			w.Add(1)
+			ch <- struct{}{}
+			tx, err := sdk.Native.OntId.AssignCtidPID(idt, acc, []byte(fmt.Sprintf("fecredBas-%d", x)), []byte("ThisIsAFakePid"), []byte("123456"))
+			if err != nil {
+				t.Errorf("Error: %s", err)
+			}
+
+			t.Logf("Tx: %s", tx.ToHexString())
+			<-ch
+			w.Done()
+		}(i)
+	}
+
+	w.Wait()
+}
+
+func TestGetCtidPid(t *testing.T) {
+
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://192.168.0.20:21334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	wallet, err := sdk.OpenWallet("test.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	acc, err := wallet.GetDefaultAccount([]byte("123456"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var pass = []byte("123456")
+
+	var idt *Identity
+	if wallet.GetIdentityCount() < 1 {
+		_idt, err := wallet.NewIdentity(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, pass)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		ctrl, _ := _idt.GetControllerByIndex(1, pass)
+		tx, err := sdk.Native.OntId.RegIDWithPublicKey(0, 0, acc, _idt.ID, ctrl)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		t.Logf("RegisterTx: %s", tx.ToHexString())
+		idt = _idt
+		time.Sleep(6 * time.Second)
+		wallet.Save()
+	} else {
+		idt, _ = wallet.GetDefaultIdentity()
+	}
+
+	ch := make(chan struct{}, 6)
+	w := sync.WaitGroup{}
+
+	for i := 100; i < 400; i++ {
+		go func(x int) {
+			ch <- struct{}{}
+			w.Add(1)
+			_, err := sdk.Native.OntId.GetCtidPID(idt, acc, []byte(fmt.Sprintf("fecredBas-%d", x)), []byte("123456"))
+			if err != nil {
+				t.Errorf("Error: %s of %d", err, x)
+			}
+			<-ch
+			w.Done()
+		}(i)
+	}
+
+	w.Wait()
+}
+
+func TestGetCtidEPid(t *testing.T) {
+
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://192.168.0.20:21334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	bas, epid, signature, err := sdk.Native.OntId.GetCtidEPID([]byte("did:idfor:TD4sWGkFUurqTJvYf4P9Zxfy9TNXNQ2YqK"), []byte("清镇远东1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("\nbas: %s,\nEPid: %s,\nSignature: %s\n", bas, epid, signature)
+}
+
+func TestRevokeCtidPid(t *testing.T) {
+
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://192.168.0.20:21334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	wallet, err := sdk.OpenWallet("test.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	acc, err := wallet.GetDefaultAccount([]byte("123456"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var pass = []byte("123456")
+
+	var idt *Identity
+	if wallet.GetIdentityCount() < 1 {
+		_idt, err := wallet.NewIdentity(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, pass)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		ctrl, _ := _idt.GetControllerByIndex(1, pass)
+		tx, err := sdk.Native.OntId.RegIDWithPublicKey(0, 0, acc, _idt.ID, ctrl)
+		if err != nil {
+			t.Log("Error: can not create identity")
+			t.FailNow()
+		}
+		t.Logf("RegisterTx: %s", tx.ToHexString())
+		idt = _idt
+		time.Sleep(6 * time.Second)
+		wallet.Save()
+	} else {
+		idt, _ = wallet.GetDefaultIdentity()
+	}
+
+	for i := 0; i < 10000; i++ {
+		tx, err := sdk.Native.OntId.RevokeCtidPID(idt, acc, []byte(fmt.Sprintf("fecredBas-%d", i)), []byte("123456"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Logf("Tx: %s", tx.ToHexString())
 	}
 }
