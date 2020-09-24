@@ -1066,6 +1066,163 @@ func (this *OntId) GetKeyState(ontId string, keyIndex int) (string, error) {
 	return preResult.Result.ToString()
 }
 
+//
+// START CTID
+//
+
+// 关联CTID
+// 注意：一个数字身份可以关联多个bas，一个bas只能关联一个pid
+func (this *OntId) AssignCtidPID(identity *Identity, acc *Account, bas, pid, pass []byte) (common.Uint256, error) {
+	type assignPid struct {
+		Bas       []byte
+		EPid      []byte
+		Idfor     []byte
+		Signature []byte
+	}
+
+	ctrl, err := identity.GetControllerByIndex(1, pass)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	epid, err := ctrl.Encrypt([]byte(pid))
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	sig, err := ctrl.Sign(epid)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	args := assignPid{
+		Bas:       bas,
+		EPid:      epid,
+		Idfor:     []byte(identity.ID),
+		Signature: sig,
+	}
+
+	imt, err := this.native.NewNativeInvokeTransaction(0, 0, byte(0), ONT_ID_CONTRACT_ADDRESS, "assignCtidPid", []interface{}{args})
+	if err != nil {
+		return common.UINT256_EMPTY, nil
+	}
+	err = this.ontSdk.SignToTransaction(imt, acc)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	return this.ontSdk.SendTransaction(imt)
+}
+
+// 获取CTID的PID
+func (this *OntId) GetCtidPID(identity *Identity, acc *Account, bas, pass []byte) (string, error) {
+	type getPid struct {
+		Bas   []byte
+		Idfor []byte
+	}
+
+	ctrl, err := identity.GetControllerByIndex(1, pass)
+	if err != nil {
+		return "", err
+	}
+
+	args := getPid{
+		Bas:   bas,
+		Idfor: []byte(identity.ID),
+	}
+
+	imt, err := this.native.NewNativeInvokeTransaction(0, 0, byte(0), ONT_ID_CONTRACT_ADDRESS, "getCtidPid", []interface{}{args})
+	if err != nil {
+		return "", err
+	}
+
+	res, err := this.ontSdk.PreExecTransaction(imt)
+	if err != nil {
+		return "", err
+	}
+
+	bs, err := res.Result.ToByteArray()
+	if err != nil {
+		return "", err
+	}
+
+	bs, err = ctrl.Decrypt(bs)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bs), nil
+}
+
+func (this *OntId) GetCtidEPID(id, bas []byte) (string, string, string, error) {
+	type getEPid struct {
+		Bas   []byte
+		Idfor []byte
+	}
+
+	args := getEPid{
+		Bas:   bas,
+		Idfor: id,
+	}
+
+	imt, err := this.native.NewNativeInvokeTransaction(0, 0, byte(0), ONT_ID_CONTRACT_ADDRESS, "getCtidEPid", []interface{}{args})
+	if err != nil {
+		return "", "", "", err
+	}
+
+	res, err := this.ontSdk.PreExecTransaction(imt)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	bs, err := res.Result.ToByteArray()
+	if err != nil {
+		return "", "", "", err
+	}
+
+	bts := bytes.Split(bs, []byte("@@@@@@@@@@"))
+	if len(bts) != 3 {
+		return "", "", "", err
+	}
+	_bas := string(bts[0])
+	epid := hex.EncodeToString(bts[1])
+	signature := hex.EncodeToString(bts[2])
+
+	return _bas, epid, signature, nil
+}
+
+func (this *OntId) RevokeCtidPID(identity *Identity, acc *Account, bas, pass []byte) (common.Uint256, error) {
+	type revokePid struct {
+		Bas   []byte
+		Idfor []byte
+	}
+
+	_, err := identity.GetControllerByIndex(1, pass)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	args := revokePid{
+		Bas:   bas,
+		Idfor: []byte(identity.ID),
+	}
+
+	imt, err := this.native.NewNativeInvokeTransaction(0, 0, byte(0), ONT_ID_CONTRACT_ADDRESS, "revokeCtidPid", []interface{}{args})
+	if err != nil {
+		return common.UINT256_EMPTY, nil
+	}
+	err = this.ontSdk.SignToTransaction(imt, acc)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+
+	return this.ontSdk.SendTransaction(imt)
+}
+
+//
+// END CTID
+//
+
 type GlobalParam struct {
 	ontSdk *OntologySdk
 	native *NativeContract
