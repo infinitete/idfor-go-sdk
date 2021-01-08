@@ -27,6 +27,7 @@ var (
 	TRUST_NOTIFY_CONTRACT_ADDRESS, _  = utils.AddressFromHexString("0800000000000000000000000000000000000000")
 	STORAGE_CONTRACT_ADDRESS, _       = utils.AddressFromHexString("0900000000000000000000000000000000000000")
 	VOUCHER_CONTRACT_ADDRESS, _       = utils.AddressFromHexString("0a00000000000000000000000000000000000000")
+	DIDDOC_CONTRACT_ADDRESS, _        = utils.AddressFromHexString("0b00000000000000000000000000000000000000")
 )
 
 var (
@@ -39,6 +40,7 @@ var (
 	TRUST_NOTIFY_CONTRACT_VERSION  = byte(0)
 	STORAGE_CONTRACT_VERSION       = byte(0)
 	VOUCHER_CONTRACT_VERSION       = byte(0)
+	DIDDOC_CONTRACT_VERSION        = byte(0)
 )
 
 var OPCODE_IN_PAYLOAD = map[byte]bool{0xc6: true, 0x6b: true, 0x6a: true, 0xc8: true, 0x6c: true, 0x68: true, 0x67: true,
@@ -54,6 +56,7 @@ type NativeContract struct {
 	TrustNotify  *TrustNotify
 	Storage      *Storage
 	Voucer       *voucher
+	DidDoc       *didDocument
 }
 
 func newNativeContract(ontSdk *OntologySdk) *NativeContract {
@@ -66,6 +69,7 @@ func newNativeContract(ontSdk *OntologySdk) *NativeContract {
 	native.TrustNotify = &TrustNotify{native: native, ontSdk: ontSdk}
 	native.Storage = &Storage{native: native, ontSdk: ontSdk}
 	native.Voucer = &voucher{native: native, ontSdk: ontSdk}
+	native.DidDoc = &didDocument{native: native, ontSdk: ontSdk}
 	return native
 }
 

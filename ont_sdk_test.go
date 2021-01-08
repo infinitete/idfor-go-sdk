@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -749,4 +750,75 @@ func TestVoucher(t *testing.T) {
 	for _, evt := range _res {
 		t.Logf("%#v", evt)
 	}
+}
+
+func TestDidDocument(t *testing.T) {
+	sdk := NewOntologySdk()
+	rest := sdk.NewRestClient()
+	rest.SetAddress("http://127.0.0.1:20334")
+	sdk.ClientMgr.SetDefaultClient(rest)
+
+	wallet, err := sdk.OpenWallet("test.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	acc, err := wallet.NewAccount(keypair.PK_SM2, keypair.SM2P256V1, signature.SM3withSM2, []byte("123456"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	raw := `
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:idfor:aabbcc",
+  "authentication": [{
+    "id": "did:idfor:aabbcc#keys-1",
+    "type": "Ed25519VerificationKey2018",
+    "controller": "did:idfor:aabbcc",
+    "publicKeyBase58": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
+  }],
+  "service": [{
+    "id":"did:idfor:aabbcc#vcs",
+    "type": "VerifiableCredentialService",
+    "serviceEndpoint": "https://example.com/vc/"
+  }]
+}
+`
+
+	var key = []byte("did:idfor:aabbcc")
+	var doc = []byte(raw)
+
+	_, err = sdk.Native.DidDoc.Put(acc, key, doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Second * 6)
+
+	res, err := sdk.Native.DidDoc.Get(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := res.Result.ToString()
+
+	t.Logf("Result: %s", s)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != string(doc) {
+		t.Fatalf("Want %s, got %s", doc, s)
+	}
+}
+
+func Test_A(t *testing.T) {
+	u := "/api/v1/transaction"
+	r := "/api/v1/idfor/did::scheme::addr/doc"
+
+	l := strings.TrimRight(r, "addr/doc")
+	t.Logf("L: %s", l)
+
+	c := strings.Contains(u, l)
+
+	t.Logf("Contains: %#v", c)
 }
