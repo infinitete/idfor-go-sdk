@@ -22,7 +22,7 @@ import (
 	"encoding/hex"
 	"io"
 
-	"git.fe-cred.com/idfor/idfor/common"
+	"github.com/infinitete/idfor/common"
 )
 
 type voucher struct {

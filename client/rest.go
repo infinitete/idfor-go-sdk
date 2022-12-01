@@ -29,8 +29,8 @@ import (
 	"strings"
 	"time"
 
-	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
-	"git.fe-cred.com/idfor/idfor/core/types"
+	"github.com/infinitete/idfor-go-sdk/utils"
+	"github.com/infinitete/idfor/core/types"
 )
 
 //RpcClient for ontology rpc api

@@ -9,8 +9,8 @@ import (
 	"os"
 	"sync"
 
-	"git.fe-cred.com/idfor/idfor/common"
-	"git.fe-cred.com/idfor/idfor/core/types"
+	"github.com/infinitete/idfor/common"
+	"github.com/infinitete/idfor/core/types"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
 )

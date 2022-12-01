@@ -19,8 +19,8 @@
 package ontology_go_sdk
 
 import (
-	sdkcom "git.fe-cred.com/idfor/idfor-go-sdk/common"
-	"git.fe-cred.com/idfor/idfor/common"
+	sdkcom "github.com/infinitete/idfor-go-sdk/common"
+	"github.com/infinitete/idfor/common"
 )
 
 type Storage struct {

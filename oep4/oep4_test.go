@@ -18,7 +18,7 @@
 package oep4
 
 import (
-	"git.fe-cred.com/idfor/idfor-go-sdk/utils"
+	"github.com/infinitete/idfor-go-sdk/utils"
 	"github.com/ontio/ontology-crypto/keypair"
 	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
 	"github.com/ontio/ontology/core/types"

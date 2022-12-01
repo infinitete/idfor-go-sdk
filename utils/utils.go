@@ -25,10 +25,10 @@ import (
 	"sort"
 	"strings"
 
-	"git.fe-cred.com/idfor/idfor/common"
-	"git.fe-cred.com/idfor/idfor/core/signature"
-	"git.fe-cred.com/idfor/idfor/core/types"
-	nvutils "git.fe-cred.com/idfor/idfor/smartcontract/service/native/utils"
+	"github.com/infinitete/idfor/common"
+	"github.com/infinitete/idfor/core/signature"
+	"github.com/infinitete/idfor/core/types"
+	nvutils "github.com/infinitete/idfor/smartcontract/service/native/utils"
 	"github.com/ontio/ontology-crypto/keypair"
 )
 

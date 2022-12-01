@@ -23,8 +23,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"git.fe-cred.com/idfor/idfor/common"
-	"git.fe-cred.com/idfor/idfor/core/payload"
+	"github.com/infinitete/idfor/common"
+	"github.com/infinitete/idfor/core/payload"
 	"math/big"
 )
 

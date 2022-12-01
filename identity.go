@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"git.fe-cred.com/idfor/idfor/core/types"
+	"github.com/infinitete/idfor/core/types"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 	base58 "github.com/itchyny/base58-go"
 	"github.com/ontio/ontology-crypto/ec"

@@ -2,7 +2,7 @@ package client
 
 import (
 	"encoding/json"
-	"git.fe-cred.com/idfor/idfor/core/types"
+	"github.com/infinitete/idfor/core/types"
 	"time"
 )
 

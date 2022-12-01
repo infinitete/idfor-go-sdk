@@ -22,10 +22,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	sdkcom "git.fe-cred.com/idfor/idfor-go-sdk/common"
-	"git.fe-cred.com/idfor/idfor/common"
-	"git.fe-cred.com/idfor/idfor/core/payload"
-	"git.fe-cred.com/idfor/idfor/core/types"
+	sdkcom "github.com/infinitete/idfor-go-sdk/common"
+	"github.com/infinitete/idfor/common"
+	"github.com/infinitete/idfor/core/payload"
+	"github.com/infinitete/idfor/core/types"
 )
 
 func GetVersion(data []byte) (string, error) {

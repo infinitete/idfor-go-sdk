@@ -3,11 +3,11 @@ package ontology_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
-	sdkcom "git.fe-cred.com/idfor/idfor-go-sdk/common"
-	"git.fe-cred.com/idfor/idfor/common"
-	"git.fe-cred.com/idfor/idfor/core/payload"
-	"git.fe-cred.com/idfor/idfor/core/types"
-	httpcom "git.fe-cred.com/idfor/idfor/http/base/common"
+	sdkcom "github.com/infinitete/idfor-go-sdk/common"
+	"github.com/infinitete/idfor/common"
+	"github.com/infinitete/idfor/core/payload"
+	"github.com/infinitete/idfor/core/types"
+	httpcom "github.com/infinitete/idfor/http/base/common"
 	"time"
 )
 
